@@ -1,3 +1,10 @@
+# FrankH167 fork changes:
+added pysolr reference to requirements.txt and solr_to_es/__main__.py
+added code to solr_to_es/solrSource.py to echo requests and reponses which was needed to:
+1. debug bad command line syntaxes
+2. show HTTP failures
+3. show progress during migrations
+
 # Solr to Elasticsearch Migrator
 
 This will migrate a Solr node to an Elasticsearch index.
