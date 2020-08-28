@@ -2,6 +2,7 @@ from __future__ import print_function
 import argparse
 from elasticsearch import Elasticsearch
 import elasticsearch.helpers
+import pysolr
 from solrSource import SlowSolrDocs
 
 
