@@ -1,9 +1,12 @@
 from __future__ import print_function
 import argparse
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, RequestsHttpConnection
 import elasticsearch.helpers
 import pysolr
 from solrSource import SlowSolrDocs
+# follow added by FHamel to support AWS IAM authentication
+from requests_aws4auth import AWS4Auth
+import boto3
 
 
 class SolrEsWrapperIter:
@@ -65,14 +68,43 @@ def parse_args():
                         type=int,
                         default=60)
 
+    parser.add_argument('--awscred',
+                        type=int,
+                        default=0)
+
     return vars(parser.parse_args())
 
 
 def main():
+    args = parse_args()
+    esurl = args['elasticsearch_url']
+    print("ElasticSearchurl=%s" % esurl)
+    awscred = args['awscred']
     try:
-        args = parse_args()
-        es_conn = Elasticsearch(hosts=args['elasticsearch_url'], timeout=args['es_timeout'])
-
+        if awscred:
+#            region = 'us-east-1' # e.g. us-west-1
+#            service = 'es'
+            session = boto3.Session()
+            credentials = boto3.Session().get_credentials()
+            print("credentials=%s" % credentials)
+            print(dir(credentials))
+            awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, session.region_name, 'es', session_token=credentials.token)
+            print("awsauth=%s" % awsauth)
+            print(dir(awsauth))
+            es_conn = Elasticsearch(
+                http_auth = awsauth,
+                use_ssl = True,
+                verify_certs = True,
+                hosts=args['elasticsearch_url'], 
+                connection_class=RequestsHttpConnection,
+                timeout=args['es_timeout']
+            )
+# following supports basic auth via the url syntax: https://userid:password@host
+        else: 
+            es_conn = Elasticsearch(
+                hosts=args['elasticsearch_url'], 
+                timeout=args['es_timeout']
+            ) 
         # Split the solr_url into the root and the request handler
         solr_conn = pysolr.Solr(args['solr_url'].rsplit('/', 1)[0], search_handler=args['solr_url'].rsplit('/', 1)[-1])
         solr_fields = args['solr_fields'].split() if args['solr_fields'] else ''
