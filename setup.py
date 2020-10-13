@@ -14,7 +14,7 @@ setup(name='solr-to-es',
       long_description_content_type='text/markdown',
       author='Scott Stults',
       author_email='sstults@opensourceconnections.com',
-      url='https://github.com/o19s/solr-to-es',
+      url='https://github.com/FrankH167/solr-to-es',
       packages=['solr_to_es'],
       entry_points={
           'console_scripts': [
